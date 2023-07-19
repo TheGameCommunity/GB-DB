@@ -1,0 +1,46 @@
+plugins {
+	id 'eclipse'
+	id 'java-library'
+	id 'com.github.johnrengelman.shadow' version "8.1.1"
+}
+
+repositories {
+	mavenCentral()
+}
+
+sourceCompatibility = 19
+targetCompatibility = 19
+
+dependencies {
+	shadow group: 'mysql', name: 'mysql-connector-java', version: '8.0.33'
+}
+
+shadowJar {
+	mergeServiceFiles()
+	configurations = [project.configurations.shadow]
+	exclude 'META-INF/LICENSE'
+	exclude 'META-INF/LICENSE.txt'
+	exclude 'META-INF/LICENSsE.txt'
+	exclude 'META-INF/NOTICE'
+	exclude 'META-INF/NOTICE.txt'
+	exclude 'META-INF/DEPENDENCIES'
+	exclude 'LICENSE.txt'
+}
+
+jar {
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	manifest {
+		attributes(
+			'Class-Path': configurations.runtimeClasspath.collect { it.getName() }.join(' '),
+			'MixinConfigs': 'mixins.json',
+			'Main-Class': 'com.thegamecommunity.gbdb',
+			'Specification-Version': 8.0,
+			'Multi-Release': 'true'
+		)
+	}
+	from {
+		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+	} {
+		exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+	}
+}
